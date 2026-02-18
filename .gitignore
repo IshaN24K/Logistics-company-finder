@@ -1,0 +1,13 @@
+# Django-specific
+db.sqlite3
+__pycache__/
+*.py[cod]
+/media/
+
+# Environments
+env/
+venv/
+.env
+
+# VS Code
+.vscode/
