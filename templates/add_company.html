@@ -1,10 +1,28 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2>Add New Logistics Company</h2>
-<form method="post">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<h2>Add Company</h2>
+<form method="POST">
     {% csrf_token %}
+    
     {{ form.as_p }}
+
     <button type="submit">Save Company</button>
 </form>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        // Initialize the multi-select dropdown
+        $('.select2-multi').select2({
+            placeholder: "Select services...",
+            allowClear: true,
+            width: '100%' // Makes it responsive
+        });
+    });
+</script>
 {% endblock %}
