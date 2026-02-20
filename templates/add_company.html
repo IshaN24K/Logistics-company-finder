@@ -1,14 +1,11 @@
 {% extends 'base.html' %}
-
 {% block content %}
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
-<h2>Add Company</h2>
+<h2>Add New Company</h2>
 <form method="POST">
     {% csrf_token %}
-    
     {{ form.as_p }}
-
     <button type="submit">Save Company</button>
 </form>
 
@@ -16,13 +13,22 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
-    $(document).ready(function () {
-        // Initialize the multi-select dropdown
-        $('.select2-multi').select2({
-            placeholder: "Select services...",
-            allowClear: true,
-            width: '100%' // Makes it responsive
-        });
+    $(document).ready(function() {
+        $('.select2-multi').select2({ placeholder: "Select services..." });
+
+        // Country/State API Logic
+        const cUrl = 'https://api.countrystatecity.in/v1/countries';
+        const cKey = '5bddb3f1c3c2f27c568293261c1305b697768660f177402864d4d2ed515c2d9a'; // Get this from countrystatecity.in
+
+        fetch(cUrl, {headers: {"X-CSCAPI-KEY": cKey}})
+            .then(res => res.json())
+            .then(data => {
+                const countrySelect = document.getElementById('country-select');
+                data.forEach(c => {
+                    let opt = new Option(c.name, c.iso2);
+                    countrySelect.add(opt);
+                });
+            });
     });
 </script>
 {% endblock %}
