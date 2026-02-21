@@ -4,6 +4,9 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from .forms import *
 from .models import *
+import os
+import requests
+from django.http import JsonResponse
 
 def signup_view(request):
     if request.method == 'POST':
@@ -30,6 +33,32 @@ def add_company(request):
     else:
         form = CompanyForm()
     return render(request, 'add_company.html', {'form': form})
+
+
+# Server-side proxy endpoints to hide the CSC API key from client-side
+@login_required
+def countries_api(request):
+    api_key = os.getenv('CSC_API_KEY')
+    if not api_key:
+        return JsonResponse({'error': 'API key not configured on server.'}, status=500)
+    try:
+        r = requests.get('https://api.countrystatecity.in/v1/countries', headers={'X-CSCAPI-KEY': api_key}, timeout=10)
+        return JsonResponse(r.json(), safe=False, status=r.status_code)
+    except Exception as e:
+        return JsonResponse({'error': 'Failed to fetch countries', 'details': str(e)}, status=500)
+
+
+@login_required
+def states_api(request, country_code):
+    api_key = os.getenv('CSC_API_KEY')
+    if not api_key:
+        return JsonResponse({'error': 'API key not configured on server.'}, status=500)
+    try:
+        url = f'https://api.countrystatecity.in/v1/countries/{country_code}/states'
+        r = requests.get(url, headers={'X-CSCAPI-KEY': api_key}, timeout=10)
+        return JsonResponse(r.json(), safe=False, status=r.status_code)
+    except Exception as e:
+        return JsonResponse({'error': 'Failed to fetch states', 'details': str(e)}, status=500)
 
 
 def find_company(request):

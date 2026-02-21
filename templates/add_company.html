@@ -14,21 +14,61 @@
 
 <script>
     $(document).ready(function() {
-        $('.select2-multi').select2({ placeholder: "Select services..." });
+            // 1. Initialize Select2 for multi-select (only if present)
+            if ($('.select2-multi').length) {
+                $('.select2-multi').select2({ placeholder: "Select services..." });
+            }
 
-        // Country/State API Logic
-        const cUrl = 'https://api.countrystatecity.in/v1/countries';
-        const cKey = '5bddb3f1c3c2f27c568293261c1305b697768660f177402864d4d2ed515c2d9a'; // Get this from countrystatecity.in
+            const countrySelect = document.getElementById('country-select');
+            const stateSelect = document.getElementById('state-select');
 
-        fetch(cUrl, {headers: {"X-CSCAPI-KEY": cKey}})
-            .then(res => res.json())
-            .then(data => {
-                const countrySelect = document.getElementById('country-select');
-                data.forEach(c => {
-                    let opt = new Option(c.name, c.iso2);
-                    countrySelect.add(opt);
+            // Ensure the selects exist on the page
+            if (countrySelect && stateSelect) {
+                // 2. Fetch Countries on load via server-side proxy (hides API key)
+                fetch('/api/countries/')
+                .then(res => {
+                    if (!res.ok) throw new Error('Network response was not ok');
+                    return res.json();
+                })
+                .then(data => {
+                    countrySelect.innerHTML = '<option value="">Select Country</option>';
+                    data.forEach(c => {
+                        let opt = new Option(c.name, c.iso2); // text, value (ISO code like 'IN')
+                        countrySelect.add(opt);
+                    });
+                })
+                .catch(err => {
+                    console.error('Error fetching countries:', err);
+                    countrySelect.innerHTML = '<option value="">Unable to load countries</option>';
                 });
-            });
+
+                // 3. LISTEN for Country change to load States
+                countrySelect.addEventListener('change', function() {
+                    const countryCode = this.value; // e.g., 'IN'
+                    stateSelect.innerHTML = '<option value="">Loading States...</option>';
+
+                    if (countryCode) {
+                        fetch(`/api/countries/${countryCode}/states/`)
+                        .then(res => {
+                            if (!res.ok) throw new Error('Network response was not ok');
+                            return res.json();
+                        })
+                        .then(data => {
+                            stateSelect.innerHTML = '<option value="">Select State</option>';
+                            data.forEach(s => {
+                                let opt = new Option(s.name, s.name);
+                                stateSelect.add(opt);
+                            });
+                        })
+                        .catch(err => {
+                            console.error("Error fetching states:", err);
+                            stateSelect.innerHTML = '<option value="">Unable to load states</option>';
+                        });
+                    } else {
+                        stateSelect.innerHTML = '<option value="">Select a country first</option>';
+                    }
+                });
+            }
     });
 </script>
 {% endblock %}
